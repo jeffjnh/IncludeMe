@@ -10,8 +10,6 @@ class App extends Component {
 	render() {
 		return (
 			<div>
-				<ConnectModal/>
-
 				<Connector/>
 			</div>
 		);
