@@ -9,10 +9,7 @@ class Verification extends React.Component{
 
 	render() {
 		return(
-			<div style={{
-				// width:"20%"
-			}}
-			>
+			<div>
 				<Form>
 					<Form.Group controlId="formBasicEmail">
 						<Form.Label>Amazon Email</Form.Label>

@@ -1,15 +1,9 @@
 import React, { Component } from "react";
 import Button from "react-bootstrap/Button";
+import ConnectModal from "./ConnectModal";
+import URI from "urijs";
 
 class Connector extends Component {
-	/**
-	 *
-	 * Global Variables
-	 *
-	 * */
-
-	URL = "wss://b7qy675ije.execute-api.us-east-1.amazonaws.com/Prod";
-	ws = new WebSocket(this.URL); //Websocket Host
 
 	/**
 	 *
@@ -22,14 +16,39 @@ class Connector extends Component {
 		this.state = {
 			msg: "awedasdwasd",
 			messages: "",
-			connected: false
+			connected: false,
+			chime_pin:"",
+			email:"",
+			ws: null,
+			url: ""
 		};
-		this.ws.onopen = () => {
+	}
+
+
+	modalUpdate = (pin, mail) => {
+
+		const URL = new URI("wss://b7qy675ije.execute-api.us-east-1.amazonaws.com/Prod")
+			.addQuery("chime_pin", pin)
+			.addQuery("email", mail);
+
+
+		console.log(URL.toString());
+		var ws = new WebSocket(URL.toString());
+
+		this.setState({
+			chime_pin:pin,
+			email:mail,
+			url: URL.toString() ,
+			ws: ws
+		});
+
+
+		ws.onopen = () => {
 			// on connecting, do nothing but log it to the console
 			console.log("connected");
 		};
 
-		this.ws.onmessage = evt => {
+		ws.onmessage = evt => {
 			// on receiving a message, add it to the list of messages
 			console.log(evt);
 			const message = evt.data;
@@ -37,12 +56,12 @@ class Connector extends Component {
 			this.setState({ messages: message });
 		};
 
-		this.ws.onclose = () => {
+		ws.onclose = () => {
 			console.log("disconnected");
 			// automatically try to reconnect on connection loss
-			this.setState({
-				ws: new WebSocket(URL)
-			});
+			// this.setState({
+			// 	ws: new WebSocket(this.state.url)
+			// });
 		};
 	}
 
@@ -52,17 +71,23 @@ class Connector extends Component {
 	 * @param messageString
 	 */
 	submitMessage = messageString => {
-		if (this.ws.readyState === 1) {
+		if (this.state.ws.readyState === 1) {
 			// on submitting the ChatInput form, send the message, add it to the list and reset the input
 			console.log("sending message");
-			const message = { data: messageString, message: "sendMessage" };
-			this.ws.send(JSON.stringify(message));
+			const message = {
+				data: messageString,
+				message: "sendMessage",
+				chime_pin: this.state.chime_pin,
+				email: this.state.email
+			};
+			this.state.ws.send(JSON.stringify(message));
 		}
 	};
 
 	render() {
 		return (
 			<div>
+				<ConnectModal stateSetter={this.modalUpdate}/>
 				<label htmlFor="name">
 					<Button
 						variant="primary"
