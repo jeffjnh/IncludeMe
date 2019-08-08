@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import Button from "react-bootstrap/Button";
+import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import ConnectModal from "./ConnectModal";
 import URI from "urijs";
 
@@ -25,10 +26,13 @@ class Connector extends Component {
 	}
 
 
-	modalUpdate = (pin, mail) => {
+	modalUpdate = (pin, mail, anon) => {
+
+		console.log(anon);
 
 		const URL = new URI("wss://b7qy675ije.execute-api.us-east-1.amazonaws.com/Prod")
 			.addQuery("chime_pin", pin)
+			.addQuery("anonymous", anon)
 			.addQuery("email", mail);
 
 
@@ -89,13 +93,19 @@ class Connector extends Component {
 			<div>
 				<ConnectModal stateSetter={this.modalUpdate}/>
 				<label htmlFor="name">
-					<Button
-						variant="primary"
-						className="m-4"
-						onClick={() => this.submitMessage("includeMe")}
-					>
-						Send
-					</Button>
+					<ButtonGroup>
+						<Button
+
+						>
+							Included
+						</Button>
+						<Button
+							variant="primary"
+							onClick={() => this.submitMessage("includeMe")}
+						>
+							IncludeMe
+						</Button>
+					</ButtonGroup>
 				</label>
 				<p>{this.state.messages.toString()}</p>
 			</div>

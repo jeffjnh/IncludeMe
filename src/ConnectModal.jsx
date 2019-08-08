@@ -11,7 +11,8 @@ class ConnectModal extends React.Component{
 		this.state={
 			shown:true,
 			email:"",
-			pin:""
+			pin:"",
+			anonymous:false
 		}
 	}
 
@@ -24,7 +25,11 @@ class ConnectModal extends React.Component{
 		this.setState({email: e.target.value})
 	};
 
+	updateAnonymous = (e) => {
+		this.setState( {anonymous: !this.state.anonymous});
+		// console.log(this.state.anonymous);
 
+	};
 
 	handleClose = () => {
 		this.setState({
@@ -49,13 +54,13 @@ class ConnectModal extends React.Component{
 							<Form.Label>Chime Meeting Pin/ID</Form.Label>
 							<Form.Control type="input" placeholder="Chime Pin" value={this.state.pin} onChange={this.updatePin}/>
 						</Form.Group>
-						<Form.Group controlId="formBasicChecbox">
+						<Form.Group controlId="formBasicChecbox" value={this.state.anonymous} onChange={this.updateAnonymous}>
 							<Form.Check type="checkbox" label="Keep me Anonymous" />
 						</Form.Group>
 						<Button variant="primary" onClick={() => {
 							console.log(this.state.pin);
 							console.log(this.state.email);
-							this.props.stateSetter(this.state.pin, this.state.email);
+							this.props.stateSetter(this.state.pin, this.state.email, this.state.anonymous);
 							console.log("setting State");
 							this.handleClose();
 						}}>
