@@ -1,11 +1,13 @@
 import React, { Component } from "react";
 import Button from "react-bootstrap/Button";
-import ButtonGroup from 'react-bootstrap/ButtonGroup';
+import ButtonGroup from "react-bootstrap/ButtonGroup";
 import ConnectModal from "./ConnectModal";
 import URI from "urijs";
+import { Progress } from "react-sweet-progress";
+import "react-sweet-progress/lib/style.css";
+import ListGroup from "react-bootstrap/ListGroup";
 
 class Connector extends Component {
-
 	/**
 	 *
 	 * Constructor
@@ -18,34 +20,39 @@ class Connector extends Component {
 			msg: "awedasdwasd",
 			messages: "",
 			connected: false,
-			chime_pin:"",
-			email:"",
+			chime_pin: "",
+			email: "",
 			ws: null,
-			url: ""
+			url: "",
+			users: [
+				{ email: "chuteec@amazon.com", include: false },
+				{ email: "johajeff@amazon.com", include: true },
+				{ email: "jeff@amazon.com", include: false },
+				{ email: "test@amazon.com", include: true },
+				{ email: "other@amazon.com", include: false }
+			]
 		};
 	}
 
-
 	modalUpdate = (pin, mail, anon) => {
-
 		console.log(anon);
 
-		const URL = new URI("wss://b7qy675ije.execute-api.us-east-1.amazonaws.com/Prod")
+		const URL = new URI(
+			"wss://b7qy675ije.execute-api.us-east-1.amazonaws.com/Prod"
+		)
 			.addQuery("chime_pin", pin)
 			.addQuery("anonymous", anon)
 			.addQuery("email", mail);
-
 
 		console.log(URL.toString());
 		var ws = new WebSocket(URL.toString());
 
 		this.setState({
-			chime_pin:pin,
-			email:mail,
-			url: URL.toString() ,
+			chime_pin: pin,
+			email: mail,
+			url: URL.toString(),
 			ws: ws
 		});
-
 
 		ws.onopen = () => {
 			// on connecting, do nothing but log it to the console
@@ -67,7 +74,7 @@ class Connector extends Component {
 			// 	ws: new WebSocket(this.state.url)
 			// });
 		};
-	}
+	};
 
 	/**
 	 *
@@ -75,7 +82,7 @@ class Connector extends Component {
 	 * @param messageString
 	 */
 	submitMessage = messageString => {
-		if (this.state.ws.readyState === 1) {
+		if (this.state.ws !== null && this.state.ws.readyState === 1) {
 			// on submitting the ChatInput form, send the message, add it to the list and reset the input
 			console.log("sending message");
 			const message = {
@@ -90,23 +97,68 @@ class Connector extends Component {
 
 	render() {
 		return (
-			<div>
-				<ConnectModal stateSetter={this.modalUpdate}/>
-				<label htmlFor="name">
-					<ButtonGroup>
-						<Button
-
-						>
-							Included
-						</Button>
-						<Button
-							variant="primary"
-							onClick={() => this.submitMessage("includeMe")}
-						>
-							IncludeMe
-						</Button>
-					</ButtonGroup>
-				</label>
+			<div style={{ margin: "10%" }}>
+				<ConnectModal stateSetter={this.modalUpdate} />
+				<div style={{ width: "80%", margin: "auto" }}>
+					<h2>Overall Meeting</h2>
+					<Progress percent={78} />
+				</div>
+				<div style={{ width: "80%", margin: "auto" }}>
+					<Button block>Included</Button>
+					<Button
+						variant="primary"
+						block
+						onClick={() => this.submitMessage("includeMe")}
+					>
+						IncludeMe
+					</Button>
+				</div>
+				<div style={{ margin: "auto", width: "80%" }}>
+					<div
+						style={{
+							marginTop: "5%",
+							height: "200px",
+							overflow: "scroll"
+						}}
+					>
+						<ListGroup>
+							{this.state.users.map(el => (
+								<ListGroup.Item
+									action
+									variant={el.include ? "success" : "danger"}
+									key={el.email}
+								>
+									{el.email}
+								</ListGroup.Item>
+							))}
+							{/* <ListGroup.Item>No style</ListGroup.Item>
+							<ListGroup.Item variant="primary">
+								Primary
+							</ListGroup.Item>
+							<ListGroup.Item action variant="secondary">
+								Secondary
+							</ListGroup.Item>
+							<ListGroup.Item action variant="success">
+								Success
+							</ListGroup.Item>
+							<ListGroup.Item action variant="danger">
+								Danger
+							</ListGroup.Item>
+							<ListGroup.Item action variant="warning">
+								Warning
+							</ListGroup.Item>
+							<ListGroup.Item action variant="info">
+								Info
+							</ListGroup.Item>
+							<ListGroup.Item action variant="light">
+								Light
+							</ListGroup.Item>
+							<ListGroup.Item action variant="dark">
+								Dark
+							</ListGroup.Item> */}
+						</ListGroup>
+					</div>
+				</div>
 				<p>{this.state.messages.toString()}</p>
 			</div>
 		);
