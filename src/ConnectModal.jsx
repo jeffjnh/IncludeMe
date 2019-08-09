@@ -46,6 +46,7 @@ class ConnectModal extends React.Component {
 							<Form.Control
 								type="email"
 								placeholder="Jeff@Amazon.com"
+								autoFocus
 								value={this.state.email}
 								onChange={this.updateEmail}
 							/>

@@ -144,7 +144,7 @@ class Connector extends Component {
 		return (
 			<div
 				style={{
-					margin: "10% auto",
+					margin: "3% auto",
 					border: "1px solid black",
 					borderRadius: "10px",
 					maxWidth: "600px"
@@ -178,6 +178,7 @@ class Connector extends Component {
 					<Button
 						variant="primary"
 						block
+						size="sm"
 						disabled={!this.state.connected}
 						onClick={() => this.submitMessage("includeMe")}
 					>
@@ -186,6 +187,7 @@ class Connector extends Component {
 					<Button
 						variant="primary"
 						block
+						size="sm"
 						disabled={!this.state.connected}
 						onClick={() => this.submitMessage("anonIncl")}
 					>
@@ -194,6 +196,7 @@ class Connector extends Component {
 					</Button>
 					<Button
 						block
+						size="sm"
 						disabled={
 							!this.state.me_included && !this.state.me_anonIncl
 						}
@@ -204,6 +207,7 @@ class Connector extends Component {
 					<Button
 						variant="primary"
 						block
+						size="sm"
 						disabled={!this.state.connected}
 						onClick={() => this.submitMessage("makeAnon")}
 					>
@@ -212,6 +216,7 @@ class Connector extends Component {
 					</Button>
 					<Button
 						block
+						size="sm"
 						disabled={this.state.connected}
 						onClick={() =>
 							this.modalUpdate(
@@ -248,7 +253,7 @@ class Connector extends Component {
 				<div style={{ margin: "3% auto", width: "90%" }}>
 					<div
 						style={{
-							height: "300px",
+							height: "250px",
 							overflow: "scroll"
 						}}
 					>
@@ -258,6 +263,7 @@ class Connector extends Component {
 									action
 									variant={el.included ? "success" : "light"}
 									key={el.email}
+									style={{ fontSize: 10, margin: "10px" }}
 								>
 									{el.anonymous ? "anonymous" : el.email}
 									{el.included ? " wants to be included" : ""}
