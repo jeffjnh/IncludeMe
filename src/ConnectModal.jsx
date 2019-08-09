@@ -5,12 +5,13 @@ import Button from "react-bootstrap/Button";
 import ReactQueryParams from "react-query-params";
 
 class ConnectModal extends ReactQueryParams {
+
 	constructor(props) {
 		super(props);
 		this.state = {
 			shown: true,
 			email: "",
-			pin: "",
+			pin: this.queryParams.chime_pin,
 			anonymous: false
 		};
 	}
