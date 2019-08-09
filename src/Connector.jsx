@@ -1,11 +1,13 @@
 import React, { Component } from "react";
 import Button from "react-bootstrap/Button";
-import ButtonGroup from "react-bootstrap/ButtonGroup";
 import ConnectModal from "./ConnectModal";
 import URI from "urijs";
-import { Progress } from "react-sweet-progress";
+import ProgressBar from "react-bootstrap/ProgressBar";
+import Badge from "react-bootstrap/Badge";
 import "react-sweet-progress/lib/style.css";
 import ListGroup from "react-bootstrap/ListGroup";
+import Sockette from "sockette";
+// const Sockette = require("sockette");
 
 class Connector extends Component {
 	/**
@@ -24,13 +26,11 @@ class Connector extends Component {
 			email: "",
 			ws: null,
 			url: "",
-			users: [
-				{ email: "chuteec@amazon.com", include: false },
-				{ email: "johajeff@amazon.com", include: true },
-				{ email: "jeff@amazon.com", include: false },
-				{ email: "test@amazon.com", include: true },
-				{ email: "other@amazon.com", include: false }
-			]
+			users: [],
+			num_include: 0,
+			me_included: false,
+			me_anonIncl: false,
+			anonymous: false
 		};
 	}
 
@@ -45,35 +45,62 @@ class Connector extends Component {
 			.addQuery("email", mail);
 
 		console.log(URL.toString());
-		var ws = new WebSocket(URL.toString());
+		var ws = new Sockette(URL.toString(), {
+			timeout: 5e3,
+			maxAttempts: 10,
+			onopen: e => {
+				console.log("Connected!", e);
+				this.setState({ connected: true });
+				this.submitMessage("connect");
+			},
+			onmessage: e => {
+				console.log("Received:", e);
+				const message = e.data;
+				console.log(message);
+				this.setState({ messages: message });
+				console.log(JSON.parse(message));
+				var count_include = 0;
+				this.setState({
+					users: JSON.parse(message)["users"].map(user => {
+						var newObj = {};
+						newObj.email = user["email"];
+						newObj.chime_pin = user["chime_pin"];
+						newObj.included = user["included"] === "true";
+						newObj.anonIncl = user["anonIncl"] === "true";
+						if (newObj.included || newObj.anonIncl) {
+							count_include++;
+						}
+						if (newObj.email === this.state.email) {
+							this.setState({ me_included: newObj.included });
+						}
+						if (newObj.email === this.state.email) {
+							this.setState({ me_anonIncl: newObj.anonIncl });
+						}
+						newObj.anonymous = user["anonymous"] === "true";
+						newObj.connectionId = user["connectionId"];
+						newObj.tstamp = user["tstamp"];
+						newObj.key = user["email"];
+						return newObj;
+					})
+				});
+				this.setState({ num_include: count_include });
+			},
+			onreconnect: e => console.log("Reconnecting...", e),
+			onmaximum: e => console.log("Stop Attempting!", e),
+			onclose: e => {
+				console.log("Closed!", e);
+				this.setState({ connected: false });
+			},
+			onerror: e => console.log("Error:", e)
+		});
 
 		this.setState({
 			chime_pin: pin,
 			email: mail,
+			anonymous: anon,
 			url: URL.toString(),
 			ws: ws
 		});
-
-		ws.onopen = () => {
-			// on connecting, do nothing but log it to the console
-			console.log("connected");
-		};
-
-		ws.onmessage = evt => {
-			// on receiving a message, add it to the list of messages
-			console.log(evt);
-			const message = evt.data;
-			console.log(message);
-			this.setState({ messages: message });
-		};
-
-		ws.onclose = () => {
-			console.log("disconnected");
-			// automatically try to reconnect on connection loss
-			// this.setState({
-			// 	ws: new WebSocket(this.state.url)
-			// });
-		};
 	};
 
 	/**
@@ -82,14 +109,19 @@ class Connector extends Component {
 	 * @param messageString
 	 */
 	submitMessage = messageString => {
-		if (this.state.ws !== null && this.state.ws.readyState === 1) {
+		console.log("attempting to send message");
+		console.log(this.state.ws);
+		if (this.state.ws !== null) {
 			// on submitting the ChatInput form, send the message, add it to the list and reset the input
 			console.log("sending message");
+			var d = new Date();
 			const message = {
 				data: messageString,
 				message: "sendMessage",
 				chime_pin: this.state.chime_pin,
-				email: this.state.email
+				email: this.state.email,
+				anonymous: this.state.anonymous.toString(),
+				time: d.getTime().toString()
 			};
 			this.state.ws.send(JSON.stringify(message));
 		}
@@ -97,27 +129,103 @@ class Connector extends Component {
 
 	render() {
 		return (
-			<div style={{ margin: "10%" }}>
+			<div
+				style={{
+					margin: "10%",
+					border: "1px solid black",
+					borderRadius: "10px"
+				}}
+			>
 				<ConnectModal stateSetter={this.modalUpdate} />
-				<div style={{ width: "80%", margin: "auto" }}>
-					<h2>Overall Meeting</h2>
-					<Progress percent={78} />
+				<div style={{ width: "90%", margin: "10px auto" }}>
+					<h1 style={{ textAlign: "center" }}>#IncludeMe</h1>
+					<ProgressBar>
+						<ProgressBar
+							striped
+							variant="success"
+							now={
+								(this.state.num_include /
+									this.state.users.length) *
+								100
+							}
+							key={1}
+						/>
+					</ProgressBar>
+					<h4 style={{ textAlign: "center" }}>
+						{Math.round(
+							(this.state.num_include / this.state.users.length) *
+								100
+						)}
+						% ({this.state.num_include} of {this.state.users.length}{" "}
+						users) want to be included
+					</h4>
 				</div>
-				<div style={{ width: "80%", margin: "auto" }}>
-					<Button block>Included</Button>
+				<div style={{ width: "90%", margin: "10px auto" }}>
 					<Button
 						variant="primary"
 						block
+						disabled={!this.state.connected}
 						onClick={() => this.submitMessage("includeMe")}
 					>
-						IncludeMe
+						Include Me
+					</Button>
+					<Button
+						variant="primary"
+						block
+						disabled={!this.state.connected}
+						onClick={() => this.submitMessage("anonIncl")}
+					>
+						Include Me Anonymously (your display name will not be
+						highlighted)
+					</Button>
+					<Button
+						block
+						disabled={
+							!this.state.me_included && !this.state.me_anonIncl
+						}
+						onClick={() => this.submitMessage("unIncludeMe")}
+					>
+						Don't Include Me
+					</Button>
+					<Button
+						block
+						disabled={this.state.connected}
+						onClick={() =>
+							this.modalUpdate(
+								this.state.chime_pin,
+								this.state.email,
+								this.state.anonymous
+							)
+						}
+					>
+						Reconnect
 					</Button>
 				</div>
-				<div style={{ margin: "auto", width: "80%" }}>
+				<div style={{ width: "90%", margin: "auto" }}>
+					<h4 style={{ textAlign: "center" }}>
+						Connection status:{" "}
+						{
+							<Badge
+								variant={
+									this.state.connected ? "success" : "danger"
+								}
+							>
+								{" "}
+								{this.state.connected
+									? "connected"
+									: "disconnected"}
+							</Badge>
+						}
+					</h4>
+					<h4 style={{ textAlign: "center" }}>
+						Currently displayed as:{" "}
+						{this.state.anonymous ? "anonymous" : this.state.email}
+					</h4>
+				</div>
+				<div style={{ margin: "3% auto", width: "90%" }}>
 					<div
 						style={{
-							marginTop: "5%",
-							height: "200px",
+							height: "300px",
 							overflow: "scroll"
 						}}
 					>
@@ -125,41 +233,16 @@ class Connector extends Component {
 							{this.state.users.map(el => (
 								<ListGroup.Item
 									action
-									variant={el.include ? "success" : "danger"}
+									variant={el.included ? "success" : "light"}
 									key={el.email}
 								>
-									{el.email}
+									{el.anonymous ? "anonymous" : el.email}
+									{el.included ? " wants to be included" : ""}
 								</ListGroup.Item>
 							))}
-							{/* <ListGroup.Item>No style</ListGroup.Item>
-							<ListGroup.Item variant="primary">
-								Primary
-							</ListGroup.Item>
-							<ListGroup.Item action variant="secondary">
-								Secondary
-							</ListGroup.Item>
-							<ListGroup.Item action variant="success">
-								Success
-							</ListGroup.Item>
-							<ListGroup.Item action variant="danger">
-								Danger
-							</ListGroup.Item>
-							<ListGroup.Item action variant="warning">
-								Warning
-							</ListGroup.Item>
-							<ListGroup.Item action variant="info">
-								Info
-							</ListGroup.Item>
-							<ListGroup.Item action variant="light">
-								Light
-							</ListGroup.Item>
-							<ListGroup.Item action variant="dark">
-								Dark
-							</ListGroup.Item> */}
 						</ListGroup>
 					</div>
 				</div>
-				<p>{this.state.messages.toString()}</p>
 			</div>
 		);
 	}

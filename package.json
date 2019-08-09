@@ -10,6 +10,7 @@
     "react-scripts": "3.0.1",
     "react-sweet-progress": "^1.1.2",
     "socket.io": "^2.2.0",
+    "sockette": "^2.0.6",
     "urijs": "^1.19.1"
   },
   "scripts": {
