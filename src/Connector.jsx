@@ -7,9 +7,12 @@ import Badge from "react-bootstrap/Badge";
 import "react-sweet-progress/lib/style.css";
 import ListGroup from "react-bootstrap/ListGroup";
 import Sockette from "sockette";
-// const Sockette = require("sockette");
+import ReactDOM from "react-dom";
+import {CopyToClipboard} from "react-copy-to-clipboard";
+
 
 class Connector extends Component {
+
 	/**
 	 *
 	 * Constructor
@@ -30,7 +33,8 @@ class Connector extends Component {
 			num_include: 0,
 			me_included: false,
 			me_anonIncl: false,
-			anonymous: false
+			anonymous: false,
+			copied: false
 		};
 	}
 
@@ -115,14 +119,27 @@ class Connector extends Component {
 			// on submitting the ChatInput form, send the message, add it to the list and reset the input
 			console.log("sending message");
 			var d = new Date();
+			var anon = this.state.anonymous;
+			if (messageString === "makeAnon") {
+				console.log("change" + anon.toString());
+				if (this.state.me_included) {
+					messageString = "includeMe";
+				} else if (this.state.me_anonIncl) {
+					messageString = "anonIncl";
+				}
+				anon = !anon;
+				this.setState({ anonymous: anon });
+			}
+			console.log(anon.toString());
 			const message = {
 				data: messageString,
 				message: "sendMessage",
 				chime_pin: this.state.chime_pin,
 				email: this.state.email,
-				anonymous: this.state.anonymous.toString(),
+				anonymous: anon.toString(),
 				time: d.getTime().toString()
 			};
+			console.log("message" + message.toString());
 			this.state.ws.send(JSON.stringify(message));
 		}
 	};
@@ -131,14 +148,26 @@ class Connector extends Component {
 		return (
 			<div
 				style={{
-					margin: "10%",
+					margin: "3% auto",
 					border: "1px solid black",
-					borderRadius: "10px"
+					borderRadius: "10px",
+					maxWidth: "600px"
 				}}
 			>
 				<ConnectModal stateSetter={this.modalUpdate} />
 				<div style={{ width: "90%", margin: "10px auto" }}>
 					<h1 style={{ textAlign: "center" }}>#IncludeMe</h1>
+					<h5 style={{textAlign: "center"}}>Chime Pin: {this.state.chime_pin}{"  "}
+
+						<CopyToClipboard text={new URI(window.location).addQuery("chime_pin", this.state.chime_pin).toString()}
+										 onCopy={() => this.setState({copied: true})}>
+							<Button
+								size="sm"
+							>Copy meeting link</Button>
+						</CopyToClipboard>
+
+					</h5>
+
 					<ProgressBar>
 						<ProgressBar
 							striped
@@ -164,6 +193,7 @@ class Connector extends Component {
 					<Button
 						variant="primary"
 						block
+						size="sm"
 						disabled={!this.state.connected}
 						onClick={() => this.submitMessage("includeMe")}
 					>
@@ -172,6 +202,7 @@ class Connector extends Component {
 					<Button
 						variant="primary"
 						block
+						size="sm"
 						disabled={!this.state.connected}
 						onClick={() => this.submitMessage("anonIncl")}
 					>
@@ -180,6 +211,7 @@ class Connector extends Component {
 					</Button>
 					<Button
 						block
+						size="sm"
 						disabled={
 							!this.state.me_included && !this.state.me_anonIncl
 						}
@@ -188,7 +220,18 @@ class Connector extends Component {
 						Don't Include Me
 					</Button>
 					<Button
+						variant="primary"
 						block
+						size="sm"
+						disabled={!this.state.connected}
+						onClick={() => this.submitMessage("makeAnon")}
+					>
+						Display my name as{" "}
+						{this.state.anonymous ? this.state.email : "anonymous"}
+					</Button>
+					<Button
+						block
+						size="sm"
 						disabled={this.state.connected}
 						onClick={() =>
 							this.modalUpdate(
@@ -225,7 +268,7 @@ class Connector extends Component {
 				<div style={{ margin: "3% auto", width: "90%" }}>
 					<div
 						style={{
-							height: "300px",
+							height: "250px",
 							overflow: "scroll"
 						}}
 					>
@@ -235,6 +278,7 @@ class Connector extends Component {
 									action
 									variant={el.included ? "success" : "light"}
 									key={el.email}
+									style={{ fontSize: 10, margin: "10px" }}
 								>
 									{el.anonymous ? "anonymous" : el.email}
 									{el.included ? " wants to be included" : ""}
