@@ -57,6 +57,7 @@ class ConnectModal extends ReactQueryParams {
 							<Form.Control
 								type="email"
 								placeholder="Jeff@Amazon.com"
+								autoFocus
 								value={this.state.email}
 								onChange={this.updateEmail}
 							/>
