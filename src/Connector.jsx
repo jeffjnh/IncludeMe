@@ -1,11 +1,15 @@
 import React, { Component } from "react";
 import Button from "react-bootstrap/Button";
-import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import ConnectModal from "./ConnectModal";
 import URI from "urijs";
+import ProgressBar from "react-bootstrap/ProgressBar";
+import Badge from "react-bootstrap/Badge";
+import "react-sweet-progress/lib/style.css";
+import ListGroup from "react-bootstrap/ListGroup";
+import Sockette from "sockette";
+// const Sockette = require("sockette");
 
 class Connector extends Component {
-
 	/**
 	 *
 	 * Constructor
@@ -18,56 +22,86 @@ class Connector extends Component {
 			msg: "awedasdwasd",
 			messages: "",
 			connected: false,
-			chime_pin:"",
-			email:"",
+			chime_pin: "",
+			email: "",
 			ws: null,
-			url: ""
+			url: "",
+			users: [],
+			num_include: 0,
+			me_included: false,
+			me_anonIncl: false,
+			anonymous: false
 		};
 	}
 
-
 	modalUpdate = (pin, mail, anon) => {
-
 		console.log(anon);
 
-		const URL = new URI("wss://b7qy675ije.execute-api.us-east-1.amazonaws.com/Prod")
+		const URL = new URI(
+			"wss://b7qy675ije.execute-api.us-east-1.amazonaws.com/Prod"
+		)
 			.addQuery("chime_pin", pin)
 			.addQuery("anonymous", anon)
 			.addQuery("email", mail);
 
-
 		console.log(URL.toString());
-		var ws = new WebSocket(URL.toString());
-
-		this.setState({
-			chime_pin:pin,
-			email:mail,
-			url: URL.toString() ,
-			ws: ws
+		var ws = new Sockette(URL.toString(), {
+			timeout: 5e3,
+			maxAttempts: 10,
+			onopen: e => {
+				console.log("Connected!", e);
+				this.setState({ connected: true });
+				this.submitMessage("connect");
+			},
+			onmessage: e => {
+				console.log("Received:", e);
+				const message = e.data;
+				console.log(message);
+				this.setState({ messages: message });
+				console.log(JSON.parse(message));
+				var count_include = 0;
+				this.setState({
+					users: JSON.parse(message)["users"].map(user => {
+						var newObj = {};
+						newObj.email = user["email"];
+						newObj.chime_pin = user["chime_pin"];
+						newObj.included = user["included"] === "true";
+						newObj.anonIncl = user["anonIncl"] === "true";
+						if (newObj.included || newObj.anonIncl) {
+							count_include++;
+						}
+						if (newObj.email === this.state.email) {
+							this.setState({ me_included: newObj.included });
+						}
+						if (newObj.email === this.state.email) {
+							this.setState({ me_anonIncl: newObj.anonIncl });
+						}
+						newObj.anonymous = user["anonymous"] === "true";
+						newObj.connectionId = user["connectionId"];
+						newObj.tstamp = user["tstamp"];
+						newObj.key = user["email"];
+						return newObj;
+					})
+				});
+				this.setState({ num_include: count_include });
+			},
+			onreconnect: e => console.log("Reconnecting...", e),
+			onmaximum: e => console.log("Stop Attempting!", e),
+			onclose: e => {
+				console.log("Closed!", e);
+				this.setState({ connected: false });
+			},
+			onerror: e => console.log("Error:", e)
 		});
 
-
-		ws.onopen = () => {
-			// on connecting, do nothing but log it to the console
-			console.log("connected");
-		};
-
-		ws.onmessage = evt => {
-			// on receiving a message, add it to the list of messages
-			console.log(evt);
-			const message = evt.data;
-			console.log(message);
-			this.setState({ messages: message });
-		};
-
-		ws.onclose = () => {
-			console.log("disconnected");
-			// automatically try to reconnect on connection loss
-			// this.setState({
-			// 	ws: new WebSocket(this.state.url)
-			// });
-		};
-	}
+		this.setState({
+			chime_pin: pin,
+			email: mail,
+			anonymous: anon,
+			url: URL.toString(),
+			ws: ws
+		});
+	};
 
 	/**
 	 *
@@ -75,14 +109,19 @@ class Connector extends Component {
 	 * @param messageString
 	 */
 	submitMessage = messageString => {
-		if (this.state.ws.readyState === 1) {
+		console.log("attempting to send message");
+		console.log(this.state.ws);
+		if (this.state.ws !== null) {
 			// on submitting the ChatInput form, send the message, add it to the list and reset the input
 			console.log("sending message");
+			var d = new Date();
 			const message = {
 				data: messageString,
 				message: "sendMessage",
 				chime_pin: this.state.chime_pin,
-				email: this.state.email
+				email: this.state.email,
+				anonymous: this.state.anonymous.toString(),
+				time: d.getTime().toString()
 			};
 			this.state.ws.send(JSON.stringify(message));
 		}
@@ -90,24 +129,120 @@ class Connector extends Component {
 
 	render() {
 		return (
-			<div>
-				<ConnectModal stateSetter={this.modalUpdate}/>
-				<label htmlFor="name">
-					<ButtonGroup>
-						<Button
-
-						>
-							Included
-						</Button>
-						<Button
-							variant="primary"
-							onClick={() => this.submitMessage("includeMe")}
-						>
-							IncludeMe
-						</Button>
-					</ButtonGroup>
-				</label>
-				<p>{this.state.messages.toString()}</p>
+			<div
+				style={{
+					margin: "10%",
+					border: "1px solid black",
+					borderRadius: "10px"
+				}}
+			>
+				<ConnectModal stateSetter={this.modalUpdate} />
+				<div style={{ width: "90%", margin: "10px auto" }}>
+					<h1 style={{ textAlign: "center" }}>#IncludeMe</h1>
+					<ProgressBar>
+						<ProgressBar
+							striped
+							variant="success"
+							now={
+								(this.state.num_include /
+									this.state.users.length) *
+								100
+							}
+							key={1}
+						/>
+					</ProgressBar>
+					<h4 style={{ textAlign: "center" }}>
+						{Math.round(
+							(this.state.num_include / this.state.users.length) *
+								100
+						)}
+						% ({this.state.num_include} of {this.state.users.length}{" "}
+						users) want to be included
+					</h4>
+				</div>
+				<div style={{ width: "90%", margin: "10px auto" }}>
+					<Button
+						variant="primary"
+						block
+						disabled={!this.state.connected}
+						onClick={() => this.submitMessage("includeMe")}
+					>
+						Include Me
+					</Button>
+					<Button
+						variant="primary"
+						block
+						disabled={!this.state.connected}
+						onClick={() => this.submitMessage("anonIncl")}
+					>
+						Include Me Anonymously (your display name will not be
+						highlighted)
+					</Button>
+					<Button
+						block
+						disabled={
+							!this.state.me_included && !this.state.me_anonIncl
+						}
+						onClick={() => this.submitMessage("unIncludeMe")}
+					>
+						Don't Include Me
+					</Button>
+					<Button
+						block
+						disabled={this.state.connected}
+						onClick={() =>
+							this.modalUpdate(
+								this.state.chime_pin,
+								this.state.email,
+								this.state.anonymous
+							)
+						}
+					>
+						Reconnect
+					</Button>
+				</div>
+				<div style={{ width: "90%", margin: "auto" }}>
+					<h4 style={{ textAlign: "center" }}>
+						Connection status:{" "}
+						{
+							<Badge
+								variant={
+									this.state.connected ? "success" : "danger"
+								}
+							>
+								{" "}
+								{this.state.connected
+									? "connected"
+									: "disconnected"}
+							</Badge>
+						}
+					</h4>
+					<h4 style={{ textAlign: "center" }}>
+						Currently displayed as:{" "}
+						{this.state.anonymous ? "anonymous" : this.state.email}
+					</h4>
+				</div>
+				<div style={{ margin: "3% auto", width: "90%" }}>
+					<div
+						style={{
+							height: "300px",
+							overflow: "scroll"
+						}}
+					>
+						<ListGroup>
+							{this.state.users.map(el => (
+								<ListGroup.Item
+									action
+									variant={el.included ? "success" : "light"}
+									key={el.email}
+								>
+									{el.anonymous ? "anonymous" : el.email}
+									{el.included ? " wants to be included" : ""}
+								</ListGroup.Item>
+							))}
+						</ListGroup>
+					</div>
+				</div>
 			</div>
 		);
 	}
