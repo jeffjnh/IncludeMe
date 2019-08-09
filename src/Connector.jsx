@@ -115,14 +115,27 @@ class Connector extends Component {
 			// on submitting the ChatInput form, send the message, add it to the list and reset the input
 			console.log("sending message");
 			var d = new Date();
+			var anon = this.state.anonymous;
+			if (messageString === "makeAnon") {
+				console.log("change" + anon.toString());
+				if (this.state.me_included) {
+					messageString = "includeMe";
+				} else if (this.state.me_anonIncl) {
+					messageString = "anonIncl";
+				}
+				anon = !anon;
+				this.setState({ anonymous: anon });
+			}
+			console.log(anon.toString());
 			const message = {
 				data: messageString,
 				message: "sendMessage",
 				chime_pin: this.state.chime_pin,
 				email: this.state.email,
-				anonymous: this.state.anonymous.toString(),
+				anonymous: anon.toString(),
 				time: d.getTime().toString()
 			};
+			console.log("message" + message.toString());
 			this.state.ws.send(JSON.stringify(message));
 		}
 	};
@@ -131,9 +144,10 @@ class Connector extends Component {
 		return (
 			<div
 				style={{
-					margin: "10%",
+					margin: "10% auto",
 					border: "1px solid black",
-					borderRadius: "10px"
+					borderRadius: "10px",
+					maxWidth: "600px"
 				}}
 			>
 				<ConnectModal stateSetter={this.modalUpdate} />
@@ -186,6 +200,15 @@ class Connector extends Component {
 						onClick={() => this.submitMessage("unIncludeMe")}
 					>
 						Don't Include Me
+					</Button>
+					<Button
+						variant="primary"
+						block
+						disabled={!this.state.connected}
+						onClick={() => this.submitMessage("makeAnon")}
+					>
+						Display my name as{" "}
+						{this.state.anonymous ? this.state.email : "anonymous"}
 					</Button>
 					<Button
 						block
