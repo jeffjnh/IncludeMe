@@ -353,8 +353,8 @@ class Connector extends Component {
 									size="sm"
 								>
 									{this.state.showCopy
-										? "Link copied to clipboard!"
-										: "Copy meeting link"}
+										? "Link Copied to Clipboard!"
+										: "Copy Meeting Link"}
 								</Button>
 							</CopyToClipboard>
 							{/* </h5> */}
