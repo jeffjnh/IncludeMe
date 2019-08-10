@@ -81,10 +81,11 @@ class Connector extends Component {
 						newObj.anonymous = user["anonymous"] === "true";
 						newObj.connectionId = user["connectionId"];
 						newObj.tstamp = parseInt(user["tstamp"]);
+						console.log(newObj.tstamp);
 						newObj.key = user["email"];
 						return newObj;
 					})
-					.sort((a, b) => a.tstamp > b.tstamp);
+					.sort((a, b) => b.tstamp - a.tstamp);
 
 				this.setState({ num_include: count_include, users: users });
 			},
