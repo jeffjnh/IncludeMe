@@ -5,7 +5,6 @@ import Button from "react-bootstrap/Button";
 import ReactQueryParams from "react-query-params";
 
 class ConnectModal extends ReactQueryParams {
-
 	constructor(props) {
 		super(props);
 		this.state = {
@@ -16,15 +15,14 @@ class ConnectModal extends ReactQueryParams {
 		};
 	}
 
-
-	componentDidMount() {
-		let search = window.location.search;
-		let params = new URLSearchParams(search);
-		let foo = params.get('query');
-		console.log(search);
-		console.log(params);
-		console.log(foo);
-	}
+	// componentDidMount() {
+	// let search = window.location.search;
+	// let params = new URLSearchParams(search);
+	// let foo = params.get("query");
+	// console.log(search);
+	// console.log(params);
+	// console.log(foo);
+	// }
 
 	updatePin = e => {
 		this.setState({ pin: e.target.value });
@@ -71,8 +69,9 @@ class ConnectModal extends ReactQueryParams {
 							<Form.Control
 								type="input"
 								placeholder="Chime Pin"
-								value={this.queryParams.chime_pin}
+								value={this.state.pin || ""}
 								onChange={this.updatePin}
+								defaultChecked={this}
 							/>
 						</Form.Group>
 						<Form.Group
@@ -88,14 +87,14 @@ class ConnectModal extends ReactQueryParams {
 						<Button
 							variant="primary"
 							onClick={() => {
-								console.log(this.state.pin);
-								console.log(this.state.email);
+								// console.log(this.state.pin);
+								// console.log(this.state.email);
 								this.props.stateSetter(
 									this.state.pin,
 									this.state.email,
 									this.state.anonymous
 								);
-								console.log("setting State");
+								// console.log("setting State");
 								this.handleClose();
 							}}
 						>
