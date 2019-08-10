@@ -7,7 +7,6 @@ import Badge from "react-bootstrap/Badge";
 import "react-sweet-progress/lib/style.css";
 import ListGroup from "react-bootstrap/ListGroup";
 import Sockette from "sockette";
-import ReactDOM from "react-dom";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 
 class Connector extends Component {
@@ -32,7 +31,8 @@ class Connector extends Component {
 			me_included: false,
 			me_anonIncl: false,
 			anonymous: false,
-			copied: false
+			copied: false,
+			showCopy: false
 		};
 	}
 
@@ -62,8 +62,8 @@ class Connector extends Component {
 				this.setState({ messages: message });
 				// console.log(JSON.parse(message));
 				var count_include = 0;
-				var users = JSON.parse(message)
-					["users"].map(user => {
+				/* prettier-ignore */
+				var users = JSON.parse(message)["users"].map(user => {
 						var newObj = {};
 						newObj.email = user["email"];
 						newObj.chime_pin = user["chime_pin"];
@@ -81,7 +81,7 @@ class Connector extends Component {
 						newObj.anonymous = user["anonymous"] === "true";
 						newObj.connectionId = user["connectionId"];
 						newObj.tstamp = parseInt(user["tstamp"]);
-						console.log(newObj.tstamp);
+						// console.log(newObj.tstamp);
 						newObj.key = user["email"];
 						return newObj;
 					})
@@ -144,6 +144,40 @@ class Connector extends Component {
 		}
 	};
 
+	getColor = pct => {
+		var percentColors = [
+			{ pct: 0.0, color: { r: 0xff, g: 0x00, b: 0 } },
+			{ pct: 0.5, color: { r: 0xff, g: 0xff, b: 0 } },
+			{ pct: 1.0, color: { r: 0x00, g: 0xff, b: 0 } }
+		];
+		for (var i = 1; i < percentColors.length - 1; i++) {
+			if (pct <= percentColors[i].pct) {
+				break;
+			}
+		}
+		var lower = percentColors[i - 1];
+		var upper = percentColors[i];
+		var range = upper.pct - lower.pct;
+		var rangePct = (pct - lower.pct) / range;
+		var pctLower = 1 - rangePct;
+		var pctUpper = rangePct;
+		var color = {
+			r: Math.floor(lower.color.r * pctLower + upper.color.r * pctUpper),
+			g: Math.floor(lower.color.g * pctLower + upper.color.g * pctUpper),
+			b: Math.floor(lower.color.b * pctLower + upper.color.b * pctUpper)
+		};
+		return "rgb(" + [color.r, color.g, color.b].join(",") + ")";
+		// or output as hex if preferred
+	};
+	clipboardTime = () => {
+		if (!this.state.showCopy) {
+			this.setState({ showCopy: true });
+			setTimeout(() => {
+				this.setState({ showCopy: false });
+			}, 5000);
+		}
+	};
+
 	render() {
 		return (
 			<div
@@ -156,6 +190,22 @@ class Connector extends Component {
 				}}
 			>
 				<ConnectModal stateSetter={this.modalUpdate} />
+				{/* <Modal show={this.state.showToast} backdrop={false}>
+					<Toast
+						onClose={() => this.setState({ showToast: false })}
+						show={this.state.showToast}
+						delay={3000}
+						autohide
+						style={{
+							backgroundColor: "rgb(83, 164, 81",
+							color: "white"
+						}}
+					>
+						<Toast.Body>
+							Woohoo, you're reading this text in a Toast!
+						</Toast.Body>
+					</Toast>
+				</Modal> */}
 				<div
 					style={{
 						//  width: "90%",
@@ -177,10 +227,16 @@ class Connector extends Component {
 				>
 					<h3 style={{ textAlign: "center" }}>Inclusion Bar</h3>
 					<div style={{ margin: "auto" }}>
-						<ProgressBar>
+						<ProgressBar style={{ border: "1px solid black" }}>
 							<ProgressBar
 								striped
-								variant="success"
+								style={{
+									background: this.getColor(
+										1 -
+											this.state.num_include /
+												this.state.users.length
+									)
+								}}
 								now={
 									(this.state.num_include /
 										this.state.users.length) *
@@ -228,23 +284,6 @@ class Connector extends Component {
 								margin: "auto"
 							}}
 						>
-							<h5 style={{ textAlign: "center" }}>
-								Chime Pin: {this.state.chime_pin}
-								{"  "}
-								<CopyToClipboard
-									text={new URI(window.location)
-										.addQuery(
-											"chime_pin",
-											this.state.chime_pin
-										)
-										.toString()}
-									onCopy={() =>
-										this.setState({ copied: true })
-									}
-								>
-									<Button size="sm">Copy meeting link</Button>
-								</CopyToClipboard>
-							</h5>
 							<Button
 								variant="primary"
 								block
@@ -289,6 +328,30 @@ class Connector extends Component {
 									? this.state.email
 									: "anonymous"}
 							</Button>
+							{/* <h5 style={{ textAlign: "center" }}> */}
+							<CopyToClipboard
+								text={new URI(window.location)
+									.addQuery("chime_pin", this.state.chime_pin)
+									.toString()}
+								onCopy={() => this.setState({ copied: true })}
+							>
+								<Button
+									block
+									onClick={this.clipboardTime}
+									disabled={this.state.showCopy}
+									variant={
+										this.state.showCopy
+											? "success"
+											: "primary"
+									}
+									size="sm"
+								>
+									{this.state.showCopy
+										? "Link copied to clipboard!"
+										: "Copy meeting link"}
+								</Button>
+							</CopyToClipboard>
+							{/* </h5> */}
 							<Button
 								variant="primary"
 								block
@@ -319,7 +382,7 @@ class Connector extends Component {
 						}}
 					>
 						<h3 style={{ textAlign: "center" }}>My Status </h3>
-						<h4 style={{ textAlign: "center" }}>
+						<h4 style={{ textAlign: "left" }}>
 							Connection:{" "}
 							{
 								<Badge
@@ -336,11 +399,14 @@ class Connector extends Component {
 								</Badge>
 							}
 						</h4>
-						<h4 style={{ textAlign: "center" }}>
+						<h4 style={{ textAlign: "left" }}>
 							Name:{" "}
 							{this.state.anonymous
 								? "anonymous"
 								: this.state.email}
+						</h4>
+						<h4 style={{ textAlign: "left" }}>
+							Chime Pin: {this.state.chime_pin}
 						</h4>
 					</div>
 				</div>
@@ -360,7 +426,7 @@ class Connector extends Component {
 						}}
 					>
 						<ListGroup>
-							{console.log(this.state.users)}
+							{/* {console.log(this.state.users)} */}
 							{this.state.users.map(el => (
 								<ListGroup.Item
 									variant={el.included ? "success" : "light"}
