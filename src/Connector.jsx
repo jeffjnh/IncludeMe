@@ -417,6 +417,25 @@ class Connector extends Component {
 							<strong>Chime Pin: </strong>
 							{this.state.chime_pin}
 						</h4>
+						<h4 style={{ textAlign: "left" }}>
+							<strong>IncludeMe? </strong>
+							{
+								<Badge
+									variant={
+										this.state.me_included ||
+										this.state.me_anonIncl
+											? "success"
+											: "primary"
+									}
+								>
+									{" "}
+									{this.state.me_included ||
+									this.state.me_anonIncl
+										? "yes"
+										: "no"}
+								</Badge>
+							}
+						</h4>
 					</div>
 				</div>
 				<div
@@ -433,7 +452,8 @@ class Connector extends Component {
 					</h3>
 					<div
 						style={{
-							height: "250px",
+							minHeight: "100px",
+							maxHeight: "250px",
 							overflow: "scroll"
 						}}
 					>
