@@ -7,7 +7,7 @@ import ReactQueryParams from "react-query-params";
 class ConnectModal extends ReactQueryParams {
 	constructor(props) {
 		super(props);
-		console.log(this.queryParams.chime_pin);
+		// console.log(this.queryParams.chime_pin);
 		this.state = {
 			shown: true,
 			email: "",
