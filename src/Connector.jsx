@@ -212,7 +212,9 @@ class Connector extends Component {
 						margin: "10px auto"
 					}}
 				>
-					<h1 style={{ textAlign: "center" }}>#IncludeMe</h1>
+					<h1 style={{ textAlign: "center" }}>
+						<strong>#IncludeMe</strong>
+					</h1>
 				</div>
 				<div
 					style={{
@@ -225,7 +227,9 @@ class Connector extends Component {
 						borderRadius: "10px"
 					}}
 				>
-					<h3 style={{ textAlign: "center" }}>Inclusion Bar</h3>
+					<h3 style={{ textAlign: "center" }}>
+						<strong>Inclusion Bar</strong>
+					</h3>
 					<div style={{ margin: "auto" }}>
 						<ProgressBar style={{ border: "1px solid black" }}>
 							<ProgressBar
@@ -278,7 +282,9 @@ class Connector extends Component {
 							flexGrow: 1
 						}}
 					>
-						<h3 style={{ textAlign: "center" }}>Controls</h3>
+						<h3 style={{ textAlign: "center" }}>
+							<strong>Controls</strong>
+						</h3>
 						<div
 							style={{
 								margin: "auto"
@@ -381,9 +387,11 @@ class Connector extends Component {
 							borderRadius: "10px"
 						}}
 					>
-						<h3 style={{ textAlign: "center" }}>My Status </h3>
+						<h3 style={{ textAlign: "center" }}>
+							<strong>My Status</strong>
+						</h3>
 						<h4 style={{ textAlign: "left" }}>
-							Connection:{" "}
+							<strong>Connection: </strong>
 							{
 								<Badge
 									variant={
@@ -400,13 +408,14 @@ class Connector extends Component {
 							}
 						</h4>
 						<h4 style={{ textAlign: "left" }}>
-							Name:{" "}
+							<strong>Name: </strong>
 							{this.state.anonymous
 								? "anonymous"
 								: this.state.email}
 						</h4>
 						<h4 style={{ textAlign: "left" }}>
-							Chime Pin: {this.state.chime_pin}
+							<strong>Chime Pin: </strong>
+							{this.state.chime_pin}
 						</h4>
 					</div>
 				</div>
@@ -419,6 +428,9 @@ class Connector extends Component {
 						//  width: "90%"
 					}}
 				>
+					<h3 style={{ textAlign: "center" }}>
+						<strong>Meeting Members</strong>
+					</h3>
 					<div
 						style={{
 							height: "250px",
