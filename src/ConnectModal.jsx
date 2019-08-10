@@ -7,6 +7,7 @@ import ReactQueryParams from "react-query-params";
 class ConnectModal extends ReactQueryParams {
 	constructor(props) {
 		super(props);
+		// console.log(this.queryParams.chime_pin);
 		this.state = {
 			shown: true,
 			email: "",
@@ -97,6 +98,11 @@ class ConnectModal extends ReactQueryParams {
 								// console.log("setting State");
 								this.handleClose();
 							}}
+							disabled={
+								this.state.pin === "" ||
+								this.state.email === "" ||
+								this.state.pin === undefined
+							}
 						>
 							Connect
 						</Button>
