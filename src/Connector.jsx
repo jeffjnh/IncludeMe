@@ -7,7 +7,8 @@ import Badge from "react-bootstrap/Badge";
 import "react-sweet-progress/lib/style.css";
 import ListGroup from "react-bootstrap/ListGroup";
 import Sockette from "sockette";
-// const Sockette = require("sockette");
+import ReactDOM from "react-dom";
+import { CopyToClipboard } from "react-copy-to-clipboard";
 
 class Connector extends Component {
 	/**
@@ -30,7 +31,8 @@ class Connector extends Component {
 			num_include: 0,
 			me_included: false,
 			me_anonIncl: false,
-			anonymous: false
+			anonymous: false,
+			copied: false
 		};
 	}
 
@@ -225,6 +227,23 @@ class Connector extends Component {
 								margin: "auto"
 							}}
 						>
+							<h5 style={{ textAlign: "center" }}>
+								Chime Pin: {this.state.chime_pin}
+								{"  "}
+								<CopyToClipboard
+									text={new URI(window.location)
+										.addQuery(
+											"chime_pin",
+											this.state.chime_pin
+										)
+										.toString()}
+									onCopy={() =>
+										this.setState({ copied: true })
+									}
+								>
+									<Button size="sm">Copy meeting link</Button>
+								</CopyToClipboard>
+							</h5>
 							<Button
 								variant="primary"
 								block

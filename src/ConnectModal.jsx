@@ -2,16 +2,28 @@ import React from "react";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
+import ReactQueryParams from "react-query-params";
 
-class ConnectModal extends React.Component {
+class ConnectModal extends ReactQueryParams {
+
 	constructor(props) {
 		super(props);
 		this.state = {
 			shown: true,
 			email: "",
-			pin: "",
+			pin: this.queryParams.chime_pin,
 			anonymous: false
 		};
+	}
+
+
+	componentDidMount() {
+		let search = window.location.search;
+		let params = new URLSearchParams(search);
+		let foo = params.get('query');
+		console.log(search);
+		console.log(params);
+		console.log(foo);
 	}
 
 	updatePin = e => {
@@ -59,7 +71,7 @@ class ConnectModal extends React.Component {
 							<Form.Control
 								type="input"
 								placeholder="Chime Pin"
-								value={this.state.pin}
+								value={this.queryParams.chime_pin}
 								onChange={this.updatePin}
 							/>
 						</Form.Group>
