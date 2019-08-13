@@ -348,7 +348,7 @@ class Connector extends Component {
 									variant={
 										this.state.showCopy
 											? "success"
-											: "primary"
+											: "secondary"
 									}
 									size="sm"
 								>
@@ -359,7 +359,7 @@ class Connector extends Component {
 							</CopyToClipboard>
 							{/* </h5> */}
 							<Button
-								variant="primary"
+								variant="secondary"
 								block
 								size="sm"
 								disabled={this.state.connected}
@@ -373,6 +373,23 @@ class Connector extends Component {
 							>
 								Reconnect
 							</Button>
+							<Button
+								variant="secondary"
+								size="sm"
+								block
+								disabled={!this.state.connected}
+								onClick={() => this.state.ws.close()}
+							>
+								Disconnect
+							</Button>
+							<Button
+								variant="secondary"
+								size="sm"
+								block
+								disabled={this.state.connected}
+							>
+								Transfer
+							</Button>
 						</div>
 					</div>
 					<div
@@ -384,58 +401,70 @@ class Connector extends Component {
 							padding: "10px",
 							margin: "10px",
 							border: "1px solid black",
-							borderRadius: "10px"
+							borderRadius: "10px",
+							display: "flex",
+							flexDirection: "column"
+							// justifyContent: "space-between"
 						}}
 					>
 						<h3 style={{ textAlign: "center" }}>
 							<strong>My Status</strong>
 						</h3>
-						<h4 style={{ textAlign: "left" }}>
-							<strong>Connection: </strong>
-							{
-								<Badge
-									variant={
-										this.state.connected
-											? "success"
-											: "danger"
-									}
-								>
-									{" "}
-									{this.state.connected
-										? "connected"
-										: "disconnected"}
-								</Badge>
-							}
-						</h4>
-						<h4 style={{ textAlign: "left" }}>
-							<strong>Name: </strong>
-							{this.state.anonymous
-								? "anonymous"
-								: this.state.email}
-						</h4>
-						<h4 style={{ textAlign: "left" }}>
-							<strong>Chime Pin: </strong>
-							{this.state.chime_pin}
-						</h4>
-						<h4 style={{ textAlign: "left" }}>
-							<strong>IncludeMe? </strong>
-							{
-								<Badge
-									variant={
-										this.state.me_included ||
+						<div
+							style={{
+								display: "flex",
+								flexDirection: "column",
+								justifyContent: "space-between",
+								flexGrow: 1
+							}}
+						>
+							<h4 style={{ textAlign: "left" }}>
+								<strong>Connection: </strong>
+								{
+									<Badge
+										variant={
+											this.state.connected
+												? "success"
+												: "danger"
+										}
+									>
+										{" "}
+										{this.state.connected
+											? "connected"
+											: "disconnected"}
+									</Badge>
+								}
+							</h4>
+							<h4 style={{ textAlign: "left" }}>
+								<strong>Name: </strong>
+								{this.state.anonymous
+									? "anonymous"
+									: this.state.email}
+							</h4>
+							<h4 style={{ textAlign: "left" }}>
+								<strong>Chime Pin: </strong>
+								{this.state.chime_pin}
+							</h4>
+							<h4 style={{ textAlign: "left" }}>
+								<strong>IncludeMe? </strong>
+								{
+									<Badge
+										variant={
+											this.state.me_included ||
+											this.state.me_anonIncl
+												? "success"
+												: "primary"
+										}
+									>
+										{" "}
+										{this.state.me_included ||
 										this.state.me_anonIncl
-											? "success"
-											: "primary"
-									}
-								>
-									{" "}
-									{this.state.me_included ||
-									this.state.me_anonIncl
-										? "yes"
-										: "no"}
-								</Badge>
-							}
-						</h4>
+											? "yes"
+											: "no"}
+									</Badge>
+								}
+							</h4>
+						</div>
 					</div>
 				</div>
 				<div
