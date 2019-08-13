@@ -336,7 +336,7 @@ class Connector extends Component {
 							</Button>
 							{/* <h5 style={{ textAlign: "center" }}> */}
 							<CopyToClipboard
-								text={new URI(window.location)
+								text={new URI(window.location.origin)
 									.addQuery("chime_pin", this.state.chime_pin)
 									.toString()}
 								onCopy={() => this.setState({ copied: true })}
