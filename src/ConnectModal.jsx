@@ -87,6 +87,7 @@ class ConnectModal extends ReactQueryParams {
 						</Form.Group>
 						<Button
 							variant="primary"
+							type='Submit'
 							onClick={() => {
 								// console.log(this.state.pin);
 								// console.log(this.state.email);
