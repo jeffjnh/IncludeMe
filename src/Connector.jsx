@@ -6,6 +6,8 @@ import ProgressBar from "react-bootstrap/ProgressBar";
 import Badge from "react-bootstrap/Badge";
 import "react-sweet-progress/lib/style.css";
 import ListGroup from "react-bootstrap/ListGroup";
+import Modal from "react-bootstrap/Modal";
+import Form from "react-bootstrap/Form";
 import Sockette from "sockette";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 
@@ -32,12 +34,17 @@ class Connector extends Component {
 			me_anonIncl: false,
 			anonymous: false,
 			copied: false,
-			showCopy: false
+			showCopy: false,
+			showTransfer: false,
+			newPin: ""
 		};
 	}
 
 	modalUpdate = (pin, mail, anon) => {
 		// console.log(anon);
+		if (this.state.connected) {
+			this.state.ws.close();
+		}
 
 		const URL = new URI(
 			"wss://b7qy675ije.execute-api.us-east-1.amazonaws.com/Prod"
@@ -177,6 +184,14 @@ class Connector extends Component {
 			}, 5000);
 		}
 	};
+	updateNewPin = e => {
+		this.setState({ newPin: e.target.value });
+	};
+	handleCloseTransfer = () => {
+		this.setState({
+			showTransfer: false
+		});
+	};
 
 	render() {
 		return (
@@ -190,22 +205,48 @@ class Connector extends Component {
 				}}
 			>
 				<ConnectModal stateSetter={this.modalUpdate} />
-				{/* <Modal show={this.state.showToast} backdrop={false}>
-					<Toast
-						onClose={() => this.setState({ showToast: false })}
-						show={this.state.showToast}
-						delay={3000}
-						autohide
-						style={{
-							backgroundColor: "rgb(83, 164, 81",
-							color: "white"
-						}}
-					>
-						<Toast.Body>
-							Woohoo, you're reading this text in a Toast!
-						</Toast.Body>
-					</Toast>
-				</Modal> */}
+				<Modal
+					// backdrop="static"
+					show={this.state.showTransfer}
+					onHide={this.handleCloseTransfer}
+				>
+					<Modal.Body>
+						<Form
+							onSubmit={event => {
+								event.preventDefault();
+							}}
+						>
+							<Form.Group controlId="formBasicPin">
+								<Form.Label>Chime Pin</Form.Label>
+								<Form.Control
+									type="text"
+									placeholder="123abc"
+									autoFocus
+									value={this.state.newPin}
+									onChange={this.updateNewPin}
+								/>
+								<Form.Text className="text-muted">
+									New meeting pin required.
+								</Form.Text>
+							</Form.Group>
+							<Button
+								variant="primary"
+								type="submit"
+								onClick={() => {
+									this.modalUpdate(
+										this.state.newPin,
+										this.state.email,
+										this.state.anonymous
+									);
+									this.handleCloseTransfer();
+								}}
+								disabled={this.state.newPin === ""}
+							>
+								Transfer
+							</Button>
+						</Form>
+					</Modal.Body>
+				</Modal>
 				<div
 					style={{
 						//  width: "90%",
@@ -386,7 +427,10 @@ class Connector extends Component {
 								variant="secondary"
 								size="sm"
 								block
-								disabled={this.state.connected}
+								// disabled={this.state.connected}
+								onClick={() =>
+									this.setState({ showTransfer: true })
+								}
 							>
 								Transfer
 							</Button>
@@ -414,7 +458,7 @@ class Connector extends Component {
 							style={{
 								display: "flex",
 								flexDirection: "column",
-								justifyContent: "space-between",
+								justifyContent: "space-around",
 								flexGrow: 1
 							}}
 						>
