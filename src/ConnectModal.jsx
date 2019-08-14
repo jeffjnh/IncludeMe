@@ -16,15 +16,6 @@ class ConnectModal extends ReactQueryParams {
 		};
 	}
 
-	// componentDidMount() {
-	// let search = window.location.search;
-	// let params = new URLSearchParams(search);
-	// let foo = params.get("query");
-	// console.log(search);
-	// console.log(params);
-	// console.log(foo);
-	// }
-
 	updatePin = e => {
 		this.setState({ pin: e.target.value });
 	};
@@ -51,7 +42,11 @@ class ConnectModal extends ReactQueryParams {
 				onHide={this.handleClose}
 			>
 				<Modal.Body>
-					<Form>
+					<Form
+						onSubmit={event => {
+							event.preventDefault();
+						}}
+					>
 						<Form.Group controlId="formBasicEmail">
 							<Form.Label>Amazon Email</Form.Label>
 							<Form.Control
@@ -87,6 +82,7 @@ class ConnectModal extends ReactQueryParams {
 						</Form.Group>
 						<Button
 							variant="primary"
+							type="submit"
 							onClick={() => {
 								// console.log(this.state.pin);
 								// console.log(this.state.email);

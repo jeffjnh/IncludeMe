@@ -6,6 +6,8 @@ import ProgressBar from "react-bootstrap/ProgressBar";
 import Badge from "react-bootstrap/Badge";
 import "react-sweet-progress/lib/style.css";
 import ListGroup from "react-bootstrap/ListGroup";
+import Modal from "react-bootstrap/Modal";
+import Form from "react-bootstrap/Form";
 import Sockette from "sockette";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 
@@ -32,12 +34,17 @@ class Connector extends Component {
 			me_anonIncl: false,
 			anonymous: false,
 			copied: false,
-			showCopy: false
+			showCopy: false,
+			showTransfer: false,
+			newPin: ""
 		};
 	}
 
 	modalUpdate = (pin, mail, anon) => {
 		// console.log(anon);
+		if (this.state.connected) {
+			this.state.ws.close();
+		}
 
 		const URL = new URI(
 			"wss://b7qy675ije.execute-api.us-east-1.amazonaws.com/Prod"
@@ -177,6 +184,14 @@ class Connector extends Component {
 			}, 5000);
 		}
 	};
+	updateNewPin = e => {
+		this.setState({ newPin: e.target.value });
+	};
+	handleCloseTransfer = () => {
+		this.setState({
+			showTransfer: false
+		});
+	};
 
 	render() {
 		return (
@@ -190,22 +205,48 @@ class Connector extends Component {
 				}}
 			>
 				<ConnectModal stateSetter={this.modalUpdate} />
-				{/* <Modal show={this.state.showToast} backdrop={false}>
-					<Toast
-						onClose={() => this.setState({ showToast: false })}
-						show={this.state.showToast}
-						delay={3000}
-						autohide
-						style={{
-							backgroundColor: "rgb(83, 164, 81",
-							color: "white"
-						}}
-					>
-						<Toast.Body>
-							Woohoo, you're reading this text in a Toast!
-						</Toast.Body>
-					</Toast>
-				</Modal> */}
+				<Modal
+					// backdrop="static"
+					show={this.state.showTransfer}
+					onHide={this.handleCloseTransfer}
+				>
+					<Modal.Body>
+						<Form
+							onSubmit={event => {
+								event.preventDefault();
+							}}
+						>
+							<Form.Group controlId="formBasicPin">
+								<Form.Label>Chime Pin</Form.Label>
+								<Form.Control
+									type="text"
+									placeholder="123abc"
+									autoFocus
+									value={this.state.newPin}
+									onChange={this.updateNewPin}
+								/>
+								<Form.Text className="text-muted">
+									New meeting pin required.
+								</Form.Text>
+							</Form.Group>
+							<Button
+								variant="primary"
+								type="submit"
+								onClick={() => {
+									this.modalUpdate(
+										this.state.newPin,
+										this.state.email,
+										this.state.anonymous
+									);
+									this.handleCloseTransfer();
+								}}
+								disabled={this.state.newPin === ""}
+							>
+								Transfer
+							</Button>
+						</Form>
+					</Modal.Body>
+				</Modal>
 				<div
 					style={{
 						//  width: "90%",
@@ -336,7 +377,7 @@ class Connector extends Component {
 							</Button>
 							{/* <h5 style={{ textAlign: "center" }}> */}
 							<CopyToClipboard
-								text={new URI(window.location)
+								text={new URI(window.location.origin)
 									.addQuery("chime_pin", this.state.chime_pin)
 									.toString()}
 								onCopy={() => this.setState({ copied: true })}
@@ -348,7 +389,7 @@ class Connector extends Component {
 									variant={
 										this.state.showCopy
 											? "success"
-											: "primary"
+											: "secondary"
 									}
 									size="sm"
 								>
@@ -359,7 +400,7 @@ class Connector extends Component {
 							</CopyToClipboard>
 							{/* </h5> */}
 							<Button
-								variant="primary"
+								variant="secondary"
 								block
 								size="sm"
 								disabled={this.state.connected}
@@ -373,6 +414,26 @@ class Connector extends Component {
 							>
 								Reconnect
 							</Button>
+							<Button
+								variant="secondary"
+								size="sm"
+								block
+								disabled={!this.state.connected}
+								onClick={() => this.state.ws.close()}
+							>
+								Disconnect
+							</Button>
+							<Button
+								variant="secondary"
+								size="sm"
+								block
+								// disabled={this.state.connected}
+								onClick={() =>
+									this.setState({ showTransfer: true })
+								}
+							>
+								Transfer
+							</Button>
 						</div>
 					</div>
 					<div
@@ -384,58 +445,70 @@ class Connector extends Component {
 							padding: "10px",
 							margin: "10px",
 							border: "1px solid black",
-							borderRadius: "10px"
+							borderRadius: "10px",
+							display: "flex",
+							flexDirection: "column"
+							// justifyContent: "space-between"
 						}}
 					>
 						<h3 style={{ textAlign: "center" }}>
 							<strong>My Status</strong>
 						</h3>
-						<h4 style={{ textAlign: "left" }}>
-							<strong>Connection: </strong>
-							{
-								<Badge
-									variant={
-										this.state.connected
-											? "success"
-											: "danger"
-									}
-								>
-									{" "}
-									{this.state.connected
-										? "connected"
-										: "disconnected"}
-								</Badge>
-							}
-						</h4>
-						<h4 style={{ textAlign: "left" }}>
-							<strong>Name: </strong>
-							{this.state.anonymous
-								? "anonymous"
-								: this.state.email}
-						</h4>
-						<h4 style={{ textAlign: "left" }}>
-							<strong>Chime Pin: </strong>
-							{this.state.chime_pin}
-						</h4>
-						<h4 style={{ textAlign: "left" }}>
-							<strong>IncludeMe? </strong>
-							{
-								<Badge
-									variant={
-										this.state.me_included ||
+						<div
+							style={{
+								display: "flex",
+								flexDirection: "column",
+								justifyContent: "space-around",
+								flexGrow: 1
+							}}
+						>
+							<h4 style={{ textAlign: "left" }}>
+								<strong>Connection: </strong>
+								{
+									<Badge
+										variant={
+											this.state.connected
+												? "success"
+												: "danger"
+										}
+									>
+										{" "}
+										{this.state.connected
+											? "connected"
+											: "disconnected"}
+									</Badge>
+								}
+							</h4>
+							<h4 style={{ textAlign: "left" }}>
+								<strong>Name: </strong>
+								{this.state.anonymous
+									? "anonymous"
+									: this.state.email}
+							</h4>
+							<h4 style={{ textAlign: "left" }}>
+								<strong>Chime Pin: </strong>
+								{this.state.chime_pin}
+							</h4>
+							<h4 style={{ textAlign: "left" }}>
+								<strong>IncludeMe? </strong>
+								{
+									<Badge
+										variant={
+											this.state.me_included ||
+											this.state.me_anonIncl
+												? "success"
+												: "primary"
+										}
+									>
+										{" "}
+										{this.state.me_included ||
 										this.state.me_anonIncl
-											? "success"
-											: "primary"
-									}
-								>
-									{" "}
-									{this.state.me_included ||
-									this.state.me_anonIncl
-										? "yes"
-										: "no"}
-								</Badge>
-							}
-						</h4>
+											? "yes"
+											: "no"}
+									</Badge>
+								}
+							</h4>
+						</div>
 					</div>
 				</div>
 				<div
