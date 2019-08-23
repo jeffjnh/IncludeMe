@@ -47,7 +47,7 @@ class Connector extends Component {
 		}
 
 		const URL = new URI(
-			"wss://b7qy675ije.execute-api.us-east-1.amazonaws.com/Prod"
+			"wss://9pie47zt0i.execute-api.us-east-1.amazonaws.com/Prod"
 		)
 			.addQuery("chime_pin", pin)
 			.addQuery("anonymous", anon)

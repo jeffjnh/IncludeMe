@@ -1,0 +1,22 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: An AWS Serverless Specification template describing your function.
+Resources:
+  serverlessreposimplewebsockOnDisconnectFunction35R83VYVUBT6:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: app.handler
+      Runtime: nodejs8.10
+      CodeUri: .
+      Description: ''
+      MemorySize: 256
+      Timeout: 3
+      Role: >-
+        arn:aws:iam::233889526429:role/serverlessrepo-simple-webs-SendMessageFunctionRole-10KEMRXCKZWBD
+      Environment:
+        Variables:
+          TABLE_NAME: include_me_connections
+      Tags:
+        'serverlessrepo:semanticVersion': 1.0.1
+        'serverlessrepo:applicationId': >-
+          arn:aws:serverlessrepo:us-east-1:729047367331:applications/simple-websockets-chat-app
